@@ -36,10 +36,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pendingIntent: PendingIntent
     private lateinit var action: NotificationCompat.Action
 
+
     private var requestPermissionLauncher: ActivityResultLauncher<String> = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
         if (it) {
+            binding.contentMain.customButton.buttonState = ButtonState.Clicked
             startDownload()
         } else {
             Snackbar.make(
@@ -65,6 +67,7 @@ class MainActivity : AppCompatActivity() {
                     POST_NOTIFICATIONS,
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
+                binding.contentMain.customButton.buttonState = ButtonState.Clicked
                 startDownload()
             } else {
                 requestPermissionLauncher.launch(POST_NOTIFICATIONS)
@@ -82,6 +85,7 @@ class MainActivity : AppCompatActivity() {
     private fun startDownload() {
         val selected = getSelectedUrl()
         if (selected != null) {
+            binding.contentMain.customButton.buttonState = ButtonState.Loading
             val (selectedURL, selectedTitle) = selected
             download(selectedURL, selectedTitle)
         } else {
@@ -140,6 +144,7 @@ class MainActivity : AppCompatActivity() {
                     notificationManager.sendNotification(fileName.toString(), context, id)
                 }
                 cursor.close()
+                binding.contentMain.customButton.buttonState = ButtonState.Completed
             }
         }
     }

@@ -38,9 +38,17 @@ class LoadingButton @JvmOverloads constructor(
     private var downloadString: CharSequence = ""
     private var loadingString: CharSequence = ""
 
-    private var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
+    var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
+        if (new == ButtonState.Loading){
+            valueAnimator.repeatCount = ValueAnimator.INFINITE
+        }
+        if (new == ButtonState.Completed){
 
+            valueAnimator.end()
+
+        }
     }
+
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
@@ -68,7 +76,9 @@ class LoadingButton @JvmOverloads constructor(
     }
 
     override fun performClick(): Boolean {
+
         valueAnimator.start()
+
         if (super.performClick()) return true
         return true
     }
@@ -76,17 +86,18 @@ class LoadingButton @JvmOverloads constructor(
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
+
         super.onDraw(canvas)
-       //start
+        //start
         val progress = valueAnimator.animatedValue as Float
         paint.color = startColor
         canvas.drawRect(0f, 0f, widthSize.toFloat(), heightSize.toFloat(), paint)
 
         //progress
         paint.color = downloadColor
-        canvas.drawRect(0f, 0f, widthSize.toFloat() * (progress/100), heightSize.toFloat(), paint)
+        canvas.drawRect(0f, 0f, widthSize.toFloat() * (progress / 100), heightSize.toFloat(), paint)
         //text
-        if (progress == 100f){
+        if (progress == 100f) {
             paint.color = startColor
             canvas.drawRect(0f, 0f, widthSize.toFloat(), heightSize.toFloat(), paint)
 
@@ -122,12 +133,12 @@ class LoadingButton @JvmOverloads constructor(
             val left = (widthSize / 2f) + (paint.textSize.toFloat() * loadingString.length / 4f)
             val right =
                 (widthSize / 2f) + (paint.textSize.toFloat() * loadingString.length / 4f) + paint.textSize
-            val top = heightSize.toFloat() / 2 - paint.textSize /2
-            val bottom = heightSize.toFloat() / 2 + paint.textSize /2
+            val top = heightSize.toFloat() / 2 - paint.textSize / 2
+            val bottom = heightSize.toFloat() / 2 + paint.textSize / 2
 
             val oval = RectF(left, top, right, bottom)
 
-            canvas.drawArc(oval, 0f, progress * 3.6f , true, paint)
+            canvas.drawArc(oval, 0f, progress * 3.6f, true, paint)
         }
     }
 
