@@ -1,5 +1,6 @@
 package com.udacity
 
+import android.Manifest.permission.POST_NOTIFICATIONS
 import android.app.DownloadManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,15 +9,21 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.webkit.MimeTypeMap
 import android.webkit.URLUtil
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -29,6 +36,19 @@ class MainActivity : AppCompatActivity() {
     private lateinit var pendingIntent: PendingIntent
     private lateinit var action: NotificationCompat.Action
 
+    private var requestPermissionLauncher: ActivityResultLauncher<String> = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            startDownload()
+        } else {
+            Snackbar.make(
+                findViewById<View>(android.R.id.content).rootView,
+                "Please grant Notification permission from App Settings",
+                Snackbar.LENGTH_LONG
+            ).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,19 +59,34 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         binding.contentMain.customButton.setOnClickListener {
-            val selected = getSelectedUrl()
-            if (selected != null) {
-                val (selectedURL, selectedTitle) = selected
-                download(selectedURL, selectedTitle)
+
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    POST_NOTIFICATIONS,
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                startDownload()
             } else {
-                Toast.makeText(this, "Please select e file to download ", Toast.LENGTH_SHORT).show()
+                requestPermissionLauncher.launch(POST_NOTIFICATIONS)
             }
+
         }
+
         createChannel(
             getString(R.string.notification_channel_id),
             getString(R.string.notification_channel_name)
         )
 
+    }
+
+    private fun startDownload() {
+        val selected = getSelectedUrl()
+        if (selected != null) {
+            val (selectedURL, selectedTitle) = selected
+            download(selectedURL, selectedTitle)
+        } else {
+            Toast.makeText(this, "Please select e file to download ", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun createChannel(channelId: String, channelName: String) {
@@ -73,8 +108,8 @@ class MainActivity : AppCompatActivity() {
             notificationManager.createNotificationChannel(notificationChannel)
 
         }
-    }
 
+    }
 
     private fun getSelectedUrl(): Pair<String, String>? {
         return when (binding.contentMain.radioGroup.checkedRadioButtonId) {
