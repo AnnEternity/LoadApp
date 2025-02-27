@@ -1,0 +1,1 @@
+This project showcases various animations to enhance the download experience. A custom button smoothly expands, updates its text, and features a circular progress animation. Upon completion, a notification is sent, leading to a detail activity where the download status is displayed with a MotionLayout animation.
